@@ -6,14 +6,28 @@ let wolkx = 800;
 let wolky = 100;
 let zonx = 0;
 let zony = 80;
-let autox = -200
-let autoy = 410;
-let autoSnelheid = 0;
+
+let autos = [
+    {
+        x: -200, y: 405, basisSnelheid: 4, snelheid: 0, r: 200,
+        g: 40, b: 50, nr: 120, ng: 20, nb: 30
+    },
+    {
+        x: -400, y: 465, basisSnelheid: 6, snelheid: 0, r: 40,
+        g: 100, b: 220, nr: 20, ng: 50, nb: 130
+    },
+    {
+        x: -150, y: 525, basisSnelheid: 3, snelheid: 0, r: 230,
+        g: 180, b: 40, nr: 140, ng: 110, nb: 20
+    }
+];
+
 let stoplichtStatus = 0;
 let isNight = false;
 let cycleTimer = 0;
 let cycleLengte = 15 * 60;
-
+let overgangDuur = 120;
+let nachtFactor = 0;
 
 function setup() {
     createCanvas(canvasBreedte, canvasHoogte);
@@ -21,28 +35,34 @@ function setup() {
 
 function draw() {
     // tijd bij houden
-    cycleTimer++;
-    if (cycleTimer >= cycleLengte) {
-        isNight = !isNight;
-        cycleTimer = 0;
+    zonx += 0.5
+    if (zonx > canvasBreedte + 100) {
+        zonx = -100;
     }
-    if (isNight) {
-        background(20, 24, 43);
-    } else {
-        background(135, 206, 235);
-    }
+    let hoek = map(zonx, -100, canvasBreedte + 100, 0, PI);
+    nachtFactor = map(sin(hoek), 0, 1, 1, 0);
+
+    nachtFactor = constrain(nachtFactor, 0, 1);
+    isNight = (nachtFactor > 0.5);
+
+    // achtergrond overgang
+    let dagLucht = color(135, 206, 235);
+    let nachtLucht = color(20, 24, 43);
+    background(lerpColor(dagLucht, nachtLucht, nachtFactor));
+
     // zon en maan
     noStroke();
     if (isNight) {
-        fill(230, 230, 210);
+        fill(230, 230, 210, nachtFactor * 255);
         circle(zonx - 15, zony - 10, 15);
         circle(zonx + 10, zony + 15, 20);
         circle(zonx + 15, zony - 15, 12);
     } else {
-        fill(255, 223, 0);
+
+        fill(255, 223, 0, (1 - nachtFactor) * 255);
         circle(zonx, zony, 80);
     }
-    // beweeg achtergrond
+
     zonx += 0.5;
     if (zonx > canvasBreedte + 40) {
         zonx = -40;
@@ -108,45 +128,45 @@ function draw() {
     //wegmarkering
     fill(255);
     for (let i = 0; i < canvasBreedte; i += 60) {
-        rect(i, horizon + 70, 30, 5);
+        rect(i, horizon + 45, 30, 5);
+        rect(i, horizon + 105, 30, 5)
     }
     // verkeerslicht logica en auto snelheid
-    if (stoplichtStatus === 0) {
-        autoSnelheid = 0;
-    }
-    else if (stoplichtStatus === 1) {
-        autoSnelheid = 4;
-    }
-    else if (stoplichtStatus === 2) {
-        autoSnelheid = 1.5;
-    }
+    for (let i = 0; i < autos.length; i++) {
+        let deAuto = autos[i];
 
-    autox += autoSnelheid;
-    if (autox > canvasBreedte + 50) {
-        autox = -200;
-    }
+        if (stoplichtStatus === 0) {
+            deAuto.snelheid = 0;
+        }
+        else if (stoplichtStatus === 1) {
+            deAuto.snelheid = deAuto.basisSnelheid;
+        }
+        else if (stoplichtStatus === 2) {
+            deAuto.snelheid = deAuto.basisSnelheid * 0.4;
+        }
 
-    // auto 
-    tekenAuto(autox, autoy);
+        deAuto.x += deAuto.snelheid;
+        if (deAuto.x > canvasBreedte + 50) {
+            deAuto.x = -200;
+        }
+        tekenAuto(deAuto.x, deAuto.y, deAuto.r, deAuto.g, deAuto.b, deAuto.nr, deAuto.ng, deAuto.nb);
+    }
 
     // bomen voor
     tekenBoom(50, canvasHoogte + 20, 1.3);
     tekenBoom(canvasBreedte - 50, canvasHoogte + 20, 1.3);
 
     // nacht overlay
-    if (isNight) {
-        fill(0, 0, 40, 120);
-        rect(0, 0, canvasBreedte, canvasHoogte)
-    }
+    fill(0, 0, 40, nachtFactor * 120);
+    rect(0, 0, canvasBreedte, canvasHoogte)
 }
 
 function tekenLantaarnpaal(x, y) {
     push();
-    if (isNight) {
-        fill(255, 255, 150, 40);
-        noStroke();
-        triangle(x, y - 180, x - 100, y + 150, x + 100, y + 150);
-    }
+    fill(255, 255, 150, nachtFactor * 40);
+    noStroke();
+    triangle(x, y - 180, x - 100, y + 150, x + 100, y + 150);
+
     stroke(40);
     strokeWeight(6)
     line(x, y, x, y - 180);
@@ -156,17 +176,15 @@ function tekenLantaarnpaal(x, y) {
     fill(50);
     rect(x + 10, y - 183, 20, 3);
 
-    if (isNight) {
-        fill(255, 255, 180);
-        ellipse(x + 20, y - 175, 16, 8);
-    }
+    // lamp gloed
+    fill(255, 255, 180, nachtFactor * 255);
+    ellipse(x + 20, y - 175, 16, 8);
     pop();
 }
 
 function tekenVogel(x, y) {
     push();
-    if (isNight) stroke(40);
-    else stroke(0);
+    stroke(lerpColor(color(0), color(40), nachtFactor));
     strokeWeight(2);
     noFill();
 
@@ -193,26 +211,27 @@ function tekenBoom(x, y, schaal) {
         fill(34, 139, 34);
     }
 
-    circle(0, -80, 60);
-    circle(-20, -60, 50);
-    circle(20, -60, 50);
+    let wind = sin(frameCount * 0.05 + x) * 4;
+
+    circle(0 + wind, -80, 60);
+    circle(-20 + wind * 0.8, -60, 50);
+    circle(20 + wind * 1.2, -60, 50);
     pop();
 }
 
-function tekenAuto(x, y) {
+function tekenAuto(x, y, r, g, b, nr, ng, nb) {
     push();
     translate(x, y);
     // koplamp straal
-    if (isNight) {
-        fill(255, 255, 200, 70)
-        noStroke();
-        triangle(165, 30, 320, 5, 320, 65);
-    }
+    fill(255, 255, 200, nachtFactor * 70)
+    noStroke();
+    triangle(165, 30, 320, 5, 320, 65);
 
-    // wielen
-    fill(20);
-    ellipse(40, 55, 45, 45);
-    ellipse(130, 55, 45, 45);
+    // autolak
+    let dagKleur = color(r, g, b);
+    let nachtkleur = color(nr, ng, nb);
+    fill(lerpColor(dagKleur, nachtkleur, nachtFactor));
+    rect(0, 10, 170, 40, 10);
 
     // geen idee hoe dit heet
     fill(180);
@@ -221,24 +240,34 @@ function tekenAuto(x, y) {
 
     // onderkant
     if (isNight)
-        fill(120, 20, 30);
-    else fill(200, 40, 50);
+        fill(nr, ng, nb);
+    else fill(r, g, b);
     rect(0, 10, 170, 40, 10);
 
     // dak
     rect(30, -10, 110, 35, 10);
 
+    // wielen
+    fill(20);
+    ellipse(40, 55, 45, 45);
+    ellipse(130, 55, 45, 45);
+
+    // vlegen
+    fill(180);
+    ellipse(40, 55, 25, 24);
+    ellipse(130, 55, 25, 25);
+
     // ramen
-    if (isNight) fill(70, 90, 120);
-    else
-        fill(160, 210, 255);
+    let dagRaam = color(160, 210, 255);
+    let nachtRaam = color(70, 90, 120);
+    fill(lerpColor(dagRaam, nachtRaam, nachtFactor));
     rect(40, -5, 40, 25, 5);
     rect(95, -5, 40, 25, 5);
 
     // kop lamp
-    if (isNight)
-        fill(255, 255, 200);
-    else fill(255, 255, 120);
+    let dagLamp = color(255, 255, 120);
+    let nachtLamp = color(255, 255, 200);
+    fill(lerpColor(dagLamp, nachtLamp, nachtFactor));
     rect(155, 25, 12, 10, 3);
     pop();
 }
@@ -251,14 +280,9 @@ function tekenVerkeerslicht(x, y) {
     fill(50);
     rect(x + 15, y + 120, 10, 80);
 
-    fill(30);
-    rect(x, y, 40, 120, 5);
-
     // als het nacht is gloeien lantaarens
-    if (isNight) {
-        fill(255, 255, 180);
-        ellipse(x + 20, y, 30, 15);
-    }
+    fill(255, 255, 180, nachtFactor * 30);
+    ellipse(x + 20, y, 30, 15);
 
     let roodKleur = color(100, 0, 0);
     let geelKleur = color(100, 100, 0);
