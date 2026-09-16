@@ -6,6 +6,7 @@ let wolkx = 800;
 let wolky = 100;
 let zonx = 0;
 let zony = 80;
+let stoplichtx = canvasBreedte - 100;
 
 let autos = [
     {
@@ -36,8 +37,8 @@ function setup() {
 function draw() {
     // tijd bij houden
     zonx += 0.5
-    if (zonx > canvasBreedte + 100) {
-        zonx = -100;
+    if (zonx > canvasBreedte + 40) {
+        zonx = -40;
     }
     let hoek = map(zonx, -100, canvasBreedte + 100, 0, PI);
     nachtFactor = map(sin(hoek), 0, 1, 1, 0);
@@ -61,11 +62,6 @@ function draw() {
 
         fill(255, 223, 0, (1 - nachtFactor) * 255);
         circle(zonx, zony, 80);
-    }
-
-    zonx += 0.5;
-    if (zonx > canvasBreedte + 40) {
-        zonx = -40;
     }
 
     // vogel formatie
@@ -135,15 +131,18 @@ function draw() {
     for (let i = 0; i < autos.length; i++) {
         let deAuto = autos[i];
 
-        if (stoplichtStatus === 0) {
+        let stoplichtstreep = stoplichtx - 170;
+
+        if (stoplichtStatus === 0 && deAuto.x >= stoplichtstreep - 10 && deAuto.x <= stoplichtstreep) {
             deAuto.snelheid = 0;
+            deAuto.x = stoplichtstreep;
         }
-        else if (stoplichtStatus === 1) {
+        else if (stoplichtStatus === 2 && deAuto.x >= stoplichtstreep - 10 && deAuto.x <= stoplichtstreep) {
+            deAuto.snelheid = deAuto.basisSnelheid * 0.4;
+        } else {
             deAuto.snelheid = deAuto.basisSnelheid;
         }
-        else if (stoplichtStatus === 2) {
-            deAuto.snelheid = deAuto.basisSnelheid * 0.4;
-        }
+
 
         deAuto.x += deAuto.snelheid;
         if (deAuto.x > canvasBreedte + 50) {
