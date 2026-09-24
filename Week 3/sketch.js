@@ -13,7 +13,19 @@ let w, h;
 let clickGeluid;
 let winLijn = null;
 
-function preload(){
+let fase = 'selectie';
+let beschikbareKleur = [
+    { naam: 'Blauw', rgb: [0, 100, 255] },
+    { naam: 'Rood', rgb: [255, 50, 50] },
+    { naam: 'Groen', rgb: [40, 180, 100] },
+    { naam: 'Paars', rgb: [150, 50, 250] },
+    { naam: 'Orangje', rgb: [255, 130, 0] },
+];
+
+let spelerKleuren = [null, null];
+let selectieBeurt = 0;
+
+function preload() {
     soundFormats('mp3');
     clickGeluid = loadSound('matthewvakaliuk73627-mouse-click-290204.mp3');
 }
@@ -27,29 +39,73 @@ function setup() {
 }
 
 function draw() {
-    bepaalAchtergrond();
-    tekenHoverEffect();
-    tekenRaster();
-    tekenZetten();
-    tekenWinLijn();
-    tekenStatus();
+    if (fase === 'selectie') {
+        tekenSelectieScherm();
+    } else if (fase === 'game') {
+        bepaalAchtergrond();
+        tekenHoverEffect();
+        tekenRaster();
+        tekenZetten();
+        tekenWinLijn();
+        tekenStatus();
+    }
+}
+
+// selectie scherm
+function tekenSelectieScherm() {
+    background(245);
+    textAlign(CENTER, CENTER);
+    noStroke();
+
+    fill(40);
+    textSize(24);
+    text("Kies je kleur", width / 2, 40);
+
+    textSize(18);
+    fill(80);
+    text("Speler" + (selectieBeurt + 1) + ", Kies een kleur:", width / 2, 80);
+
+    // kleur knoppen
+    textSize(16)
+    for (let i = 0; i < beschikbareKleur.length; i++) {
+        let k = beschikbareKleur[i];
+        let y = 130 + i * 55;
+        let alGekozen = (selectieBeurt === 1 && spelerKleuren[0] === k);
+
+        if (alGekozen) {
+            fill(200);
+            rect(50, y, width - 100, 45, 10);
+            fill(130);
+            text(k.naam + "(Al gekozen)", width / 2, y + 22);
+        } else {
+            fill(k.rgb[0], k.rgb[1], k.rgb[2]);
+            rect(50, y, width - 100, 45, 10);
+            fill(255);
+            text(k.naam, width / 2, y + 22);
+        }
+    }
+
 }
 
 // veranderd achtergrond kleur
 function bepaalAchtergrond() {
+    background 
+    let k1 = spelerKleuren[0].rgb;
+    let k2 = spelerKleuren[1].rgb;
+
     if (spelActief) {
         if (actieveSpeler === spelers[0]) {
-            background(240, 245, 255);
+            background(k1[0], k1[1], k1[2], 20);
         } else {
-            background(255, 240, 240)
+            background(k2[0], k2[1], k2[2], 20);
         }
     } else {
         if (winnaar === 'Gelijkspel') {
             background(230);
         } else if (winnaar === spelers[0]) {
-            background(200, 220, 255);
+            background(k1[0], k1[1], k1[2], 60);
         } else {
-            background(255, 200, 200);
+            background(k2[0], k2[1], k2[2], 60);
         }
     }
 }
@@ -63,11 +119,8 @@ function tekenHoverEffect() {
 
     if (i >= 0 && i < 3 && j >= 0 && j < 3 && board[i][j] === '') {
         noStroke();
-        if (actieveSpeler === spelers[0]) {
-            fill(0, 0, 255, 30);
-        } else {
-            fill(255, 0, 0, 30);
-        }
+        let k = (actieveSpeler === spelers[0]) ? spelerKleuren[0].rgb : spelerKleuren[1].rgb;
+        fill(k[0], k[1], k[2], 40);
         rect(j * w, i * h, w, h);
     }
 }
@@ -91,12 +144,12 @@ function tekenZetten() {
 
             if (spot === spelers[0]) {
                 noFill();
-                stroke(0, 0, 255);
-                strokeWeight(6);
+                stroke(spelerKleuren[0].rgb[0], spelerKleuren[0].rgb[1], spelerKleuren[0].rgb[2], 255);
+                strokeWeight(10);
                 ellipse(x, y, w * 0.6);
             } else if (spot === spelers[1]) {
-                stroke(255, 0, 0);
-                strokeWeight(6);
+                stroke(spelerKleuren[1].rgb[0], spelerKleuren[1].rgb[1], spelerKleuren[1].rgb[2], 255);
+                strokeWeight(10);
                 let xr = w * 0.3;
                 line(x - xr, y - xr, x + xr, y + xr);
                 line(x + xr, y - xr, x - xr, y + xr);
@@ -110,8 +163,10 @@ function tekenZetten() {
 function tekenWinLijn() {
     if (spelActief || !winLijn || winnaar === 'Gelijkspel') return;
 
-    strokeWeight(8);
-    stroke(winnaar === spelers[0] ? color(0, 0, 255) : color(255, 0, 0));
+    strokeWeight(10);
+    let k = (winnaar === spelers[0]) ? spelerKleuren[0].rgb : spelerKleuren[1].rgb;
+    stroke(k[0], k[1], k[2], 255);
+    
 
     if (winLijn.type === 'rij') {
         let y = winLijn.index * h + h / 2;
@@ -155,25 +210,55 @@ function tekenStatus() {
     }
 }
 
-// herstarten
+// klik logica per fase
 function mousePressed() {
-    if (spelActief) {
+    //  logica voor het kleur scherm
+    if (fase === 'selectie') {
+        for (let i = 0; i < beschikbareKleur.length; i++) {
+            let y = 130 + i * 55;
+            if (mouseX > 55 && mouseX < width - 55 && mouseY > y && mouseY < y + 45) {
+                let gekozenKleur = beschikbareKleur[i];
+                if (selectieBeurt === 1 && spelerKleuren[0] === gekozenKleur) {
+                    return;
+                }
+                if (clickGeluid) {
+                    clickGeluid.stop(); clickGeluid.play();
+                }
+                //geluid afspelen succesvolle
+                spelerKleuren[selectieBeurt] = gekozenKleur;
+                if (selectieBeurt === 0) {
+                    selectieBeurt = 1;
+                } else {
+                    fase = 'game';
+                }
+                return;
+            }
+        }
+    }
+
+    // logica voor spel zelf
+    else if (fase === 'game') {
+        if (!spelActief) {
+            resetSpel();
+            fase = 'selectie';
+            selectieBeurt = 0;
+            spelerKleuren = [null, null];
+            return;
+        }
         let j = floor(mouseX / w);
         let i = floor(mouseY / h);
 
         if (i >= 0 && i < 3 && j >= 0 && j < 3) {
             if (board[i][j] === '') {
-                clickGeluid.stop();
-                clickGeluid.play();
+                if (clickGeluid) { clickGeluid.stop(); clickGeluid.play(); }
                 board[i][j] = actieveSpeler;
                 controleerEindeSpel();
                 if (spelActief) {
                     wisselSpeler();
                 }
             }
+
         }
-    } else {
-        resetSpel();
     }
 }
 
@@ -201,7 +286,7 @@ function controleerEindeSpel() {
             board[i][0] === board[i][1] &&
             board[i][1] === board[i][2]) {
 
-                   winLijn = { type: 'rij', index: i };
+            winLijn = { type: 'rij', index: i };
             kondigWinnaar(board[i][0]);
             return;
         }
@@ -212,7 +297,7 @@ function controleerEindeSpel() {
             board[0][j] === board[1][j] &&
             board[1][j] === board[2][j]) {
 
-                winLijn = { type: 'kolom', index: j };
+            winLijn = { type: 'kolom', index: j };
             kondigWinnaar(board[0][j]);
             return;
         }
@@ -222,7 +307,7 @@ function controleerEindeSpel() {
         board[0][0] === board[1][1] &&
         board[1][1] === board[2][2]) {
 
-            winLijn = { type: 'diagonaal1' };
+        winLijn = { type: 'diagonaal1' };
         kondigWinnaar(board[0][0]);
         return;
     }
@@ -230,7 +315,7 @@ function controleerEindeSpel() {
         board[0][2] === board[1][1] &&
         board[1][1] === board[2][0]) {
 
-           winLijn = { type: 'diagonaal2' };
+        winLijn = { type: 'diagonaal2' };
         kondigWinnaar(board[0][2]);
         return;
     }
