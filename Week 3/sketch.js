@@ -45,8 +45,8 @@ function draw() {
         tekenSelectieScherm();
     } else if (fase === 'game') {
         bepaalAchtergrond();
-        tekenHoverEffect();
         tekenRaster();
+        tekenHoverEffect();
         tekenZetten();
         tekenWinLijn();
         tekenStatus();
@@ -91,7 +91,7 @@ function tekenSelectieScherm() {
 
 // veranderd achtergrond kleur
 function bepaalAchtergrond() {
-    background
+    background(255);
     let k1 = spelerKleuren[0].rgb; // kleur speler 1
     let k2 = spelerKleuren[1].rgb; // kleur speler 2
 
@@ -117,6 +117,7 @@ function bepaalAchtergrond() {
 // hover effect
 function tekenHoverEffect() {
     if (!spelActief) return;
+     if (mouseY > height - 50) return;
 
     let j = floor(mouseX / w); // kolom
     let i = floor(mouseY / h); // rij
@@ -124,8 +125,10 @@ function tekenHoverEffect() {
     if (i >= 0 && i < 3 && j >= 0 && j < 3 && board[i][j] === '') {
         noStroke();
         let k = (actieveSpeler === spelers[0]) ? spelerKleuren[0].rgb : spelerKleuren[1].rgb;
-        fill(k[0], k[1], k[2], 40);
-        rect(j * w, i * h, w, h);
+
+        let marge = 5;
+        fill(k[0], k[1], k[2], 60);
+        rect(j * w - marge, i * h - marge, w + 2 * marge, h + 2 * marge, 8);
     }
 }
 // teken raster
