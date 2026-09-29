@@ -73,3 +73,23 @@ function draw() {
     pop();
   }
 }
+
+function maakVorm(x, y, z){
+  positiesX.push(x);
+  positiesY.push(y);
+  positiesZ.push(z);
+
+  groottes.push(random(30, 100));
+
+  snelhedenX.push(random(-1, 1));
+  snelhedenY.push(random(-1, 1));
+  snelhedenZ.push(random(-1, 1));
+
+  rotatiesX.push(random(0.01, 0.03));
+  rotatiesY.push(random(0.01, 0.03));
+  huidigeRotatieX.push(random(TWO_PI));
+  huidigeRotatieY.push(random(TWO_PI));
+
+  kleuren.push(color(random(0, 255), random(0, 255), random(0, 255)));
+  types.push(int(random (0,4)));
+}
