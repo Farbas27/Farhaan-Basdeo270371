@@ -1,5 +1,5 @@
 function setup() {
-  createCanvas(900, 600);
+  createCanvas(800, 600);
   background(220);
   noStroke();
 
@@ -74,15 +74,14 @@ let w7 = 20;
 for (let i = 0; i < 21; i++) {
 
   if (i % 2 === 0) fill(200);  
-  else fill(255);             
-
-  if (i < 11) w7 += 10;
-  else w7 -= 10;
-
-  let xPos = x7 - w7 / 2;
-
-  rect(xPos, y7, w7, 20);
-
+  else fill(255); 
+  
+   if (i < 10) {
+    w7 += 10;
+  } else {
+    w7 -= 10;
+  }
+  rect(x7, y7, w7, 20);
   y7 += 20; 
 }
 }
