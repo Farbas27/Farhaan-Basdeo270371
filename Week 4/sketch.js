@@ -20,7 +20,6 @@ let huidigeRotatieY = [];
 
 let aantalVormen;
 
-
 function setup() {
   createCanvas(800, 600, WEBGL);
   aantalVormen = random(20, 50);
@@ -28,13 +27,13 @@ function setup() {
   // vul de arrays met willekeurige 3d eigenschappen via een loop
   for (let i = 0; i < aantalVormen; i++) {
     // kiest een willekeurige X‑positie tussen -width/2 en width/2
-// kiest een willekeurige Y‑positie tussen -height/2 en height/2
-// kiest een willekeurige Z‑diepte tussen -300 en 100
+    // kiest een willekeurige Y‑positie tussen -height/2 en height/2
+    // kiest een willekeurige Z‑diepte tussen -300 en 100
 
-maakVorm(random(-width / 2, width / 2),
-         random(-height / 2, height / 2),
-         random(-300, 100));
-   }
+    maakVorm(random(-width / 2, width / 2),
+      random(-height / 2, height / 2),
+      random(-300, 100));
+  }
 }
 
 function draw() {
@@ -75,7 +74,7 @@ function draw() {
 
     // laat de vormen om zijn eigen as draaien
     rotateX(huidigeRotatieX[i]);
-rotateY(huidigeRotatieY[i]);
+    rotateY(huidigeRotatieY[i]);
 
 
     // geef de vormen zijn materiaal en Kleur
@@ -99,7 +98,7 @@ rotateY(huidigeRotatieY[i]);
 }
 
 // hulp functie om een 3d vorm aan te maken
-function maakVorm(x, y, z){
+function maakVorm(x, y, z) {
   positiesX.push(x);
   positiesY.push(y);
   positiesZ.push(z);
@@ -122,13 +121,13 @@ function maakVorm(x, y, z){
 
   // kiest een willekeurige kleur en 3d vorm
   kleuren.push(color(random(0, 255), random(0, 255), random(0, 255)));
-  types.push(floor(random (0,4)));
+  types.push(floor(random(0, 4)));
 }
 
 // interactie vormen toevoefen op muisklik
-function mousePressed(){
+function mousePressed() {
   //Check of de muis binnen het canvas zit
-  if ( mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height){
+  if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
     // Omrekenen naar WEBGL‑coördinaten
     let d3X = mouseX - width / 2;
     let d3Y = mouseY - height / 2;
@@ -138,22 +137,22 @@ function mousePressed(){
 }
 
 // knoppen functionaliteiten
-function keyPressed(){
+function keyPressed() {
   // bavkspace verandert kleuren
-  if (keyCode === BACKSPACE){
+  if (keyCode === BACKSPACE) {
     // // loop door alle vormen heen zodat elke vorm apart wordt bijgewerkt en getekend
-    for(let i = 0; i < positiesX.length; i++){
-      kleuren[i] = color(random(0, 255), random (0, 255), random(0, 255));
+    for (let i = 0; i < positiesX.length; i++) {
+      kleuren[i] = color(random(0, 255), random(0, 255), random(0, 255));
     }
   }
 
   // s is screenshot
-  if(key === 's' || key === 'S'){
+  if (key === 's' || key === 'S') {
     saveCanvas('mijn-3d- kunstwerk', 'png');
   }
 
   // enter is reset
-  if (keyCode === ENTER){
+  if (keyCode === ENTER) {
     positiesX = []; positiesY = []; positiesZ = [];
     groottes = []; kleuren = []; types = [];
     snelhedenX = []; snelhedenY = []; snelhedenZ = [];
@@ -161,10 +160,8 @@ function keyPressed(){
     huidigeRotatieX = []; huidigeRotatieY = [];
 
     aantalVormen = random(20, 50);
-    for(let i = 0; i < aantalVormen; i++){
-      maakVorm(random(-width/2, width/2), random(-height/2, height/2), random(-300, 100));
+    for (let i = 0; i < aantalVormen; i++) {
+      maakVorm(random(-width / 2, width / 2), random(-height / 2, height / 2), random(-300, 100));
     }
   }
 }
-
-// ik begrijp dat ik zelf heb gekoze om het op deze manier te doen maar dit was hell
