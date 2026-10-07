@@ -1,4 +1,4 @@
-let kleuren = ["red", "green", "blue, orange", "purple", "yellow"];
+let kleuren = ["red", "green", "blue", "orange", "purple", "yellow"];
 let bestanden = [
   "elephant",
   "giraffe",
