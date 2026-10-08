@@ -1,11 +1,9 @@
 let quizData = []; // array waarin alle vragen, opties en juisten antwoorden worden opgeslagen
-let huidigeVraagIndex = 0; // houd bij welke vraag de speler is 
-let score = 0; 
+let huidigeVraagIndex = 0; // houd bij welke vraag de speler is
+let score = 0;
 let spelStatus = "START"; // bepaalt welke scherm getoond wordt ("START", "QUIZ", "FEEDBACK" of "EINDE")
 let gekozenAntwoord = -1; // slaat de index op van de antwoorden die de speler heeft geklikt
 let isAntwoordGoed = false; // het andwoord word true als je de huiste kiest anders blijft het false
-
-// variabele voor  de open vragen in de html inputveld
 let invoerveld; // bewaart het html  input element
 let openVraagAntwoord = ""; // slaat de tekst op die de gebruiker intypt
 
@@ -15,20 +13,21 @@ function setup() {
   textAlign(CENTER, CENTER);
 
   // inputveld voor open vraag
-invoerveld = createInput('');
-invoerveld.size(400, 40);
-invoerveld.style('Front-size', '18px');
-invoerveld.style('text-align', 'center');
-invoerveld.style('border-radius', '8px')
-invoerveld.style('border', '2px solid #475569')
-invoerveld.style('backround-color', '#1e293b')
-
-
+  invoerveld = createInput("");
+  invoerveld.size(400, 40);
+  invoerveld.style("font-size", "18px");
+  invoerveld.style("text-align", "center");
+  invoerveld.style("border-radius", "8px");
+  invoerveld.style("border", "2px solid #475569");
+  invoerveld.style("background-color", "#1e293b");
+  invoerveld.style("color", "#f1f4f9");
+  invoerveld.hide();
 
   // data base met alle vragen
   quizData = [
     {
       vraag: "Wat betekent het woord 'phishing'?",
+      type: "meerkeuze",
       opties: [
         "Een techniek om sneller te kunnen downloaden.",
         "Een poging om iemand te misleiden zodat ze gevoelige informatie geven.",
@@ -39,6 +38,7 @@ invoerveld.style('backround-color', '#1e293b')
     },
     {
       vraag: "Wat is een sterk wachtwoord?",
+      type: "meerkeuze",
       opties: [
         "je geboortedatum met uitroeptekens.",
         "Het woord 'wachtwoord123'.",
@@ -49,6 +49,7 @@ invoerveld.style('backround-color', '#1e293b')
     },
     {
       vraag: "Wat doet een firewall?",
+      type: "meerkeuze",
       opties: [
         "Het beveiligt een computer tegen malware.",
         "Het verbetert de internetverbinding.",
@@ -59,6 +60,7 @@ invoerveld.style('backround-color', '#1e293b')
     },
     {
       vraag: "wat is malware?",
+      type: "meerkeuze",
       opties: [
         "Schadelijke software zoals virussen, worms, ransomware of spyware.",
         "Een porgramma waarmee je hardware kunt repareren.",
@@ -69,6 +71,7 @@ invoerveld.style('backround-color', '#1e293b')
     },
     {
       vraag: "waarom is 2FA belangrijk?",
+      type: "meerkeuze",
       opties: [
         "omdat je computer dan sneller werkt.",
         "omdat het extra beveiliging biedt.",
@@ -79,6 +82,7 @@ invoerveld.style('backround-color', '#1e293b')
     },
     {
       vraag: "wat is ransomware?",
+      type: "meerkeuze",
       opties: [
         "Software die je computer helpt minder stroom te gebruiken.",
         "Een type computerbeeldscherm dat speciaal is voor gaming.",
@@ -89,6 +93,7 @@ invoerveld.style('backround-color', '#1e293b')
     },
     {
       vraag: "wat is social engineering?",
+      type: "meerkeuze",
       opties: [
         "Het bouwen van een sociaal netwerk zoals Facebook.",
         "Manipulatie van mensen om toegang of informatie te krijgen.",
@@ -99,6 +104,7 @@ invoerveld.style('backround-color', '#1e293b')
     },
     {
       vraag: "wat betekent encryptie?",
+      type: "meerkeuze",
       opties: [
         "Het versleutelen van data zodat alleen bevoegde personen het kunnen lezen.",
         "Het permanent verwijderen van tijdelijke internetbestanden.",
@@ -109,6 +115,7 @@ invoerveld.style('backround-color', '#1e293b')
     },
     {
       vraag: "wat is een VPN?",
+      type: "meerkeuze",
       opties: [
         "Een virusscanner voor mobiele telefoon.",
         "een videospeler voor beveiligde media bestanden.",
@@ -119,6 +126,7 @@ invoerveld.style('backround-color', '#1e293b')
     },
     {
       vraag: "waarom moet je software updaten?",
+      type: "meerkeuze",
       opties: [
         "omdat het je computer sneller maakt.",
         "omdat het beveiliginglekken repareren en bescherming verbetert.",
@@ -127,13 +135,30 @@ invoerveld.style('backround-color', '#1e293b')
       ],
       correct: 1,
     },
+    {
+      vraag:
+        "welke afkorting (3 letters) staat voor extra inlogstap waarbijvoorbeeld een code via SMS of Authenticator-app invult?",
+      type: "open",
+      correctAntwoord: "2fa",
+      uitlegAntwoord: "2FA (Two-Factor Authentication)",
+    },
+    {
+      vraag:
+        "Hou noem je een kwaadwillendw computerprogrammeur die probeert in te breken in systemen en netwerken? ",
+      type: "open",
+      correctAntwoord: "hacker",
+      uitlegAntwoord:
+  "Hacker. Een Black Hat hackt om schade te veroorzaken of data te stelen.",
+},
   ];
+// vragen door elkaar zetten
+quizData = shuffle(quizData);
 }
 
 function draw() {
   tekenAchtergrond();
   if (spelStatus === "START") {
-    tekenStartScherm();// tekent altijd eerst de tech achtergrond
+    tekenStartScherm(); // tekent altijd eerst de tech achtergrond
   } else if (spelStatus === "QUIZ") {
     toonVraagEnOpties(); // toonde huidige vragen
   } else if (spelStatus === "FEEDBACK") {
@@ -152,7 +177,7 @@ function tekenAchtergrond() {
     stroke(c);
     line(0, i, width, i);
   }
-  
+
   // teken dunne rasterlijnen voor een digitale/cyber look
   stroke(51, 65, 85, 50);
   strokeWeight(1);
@@ -164,7 +189,7 @@ function tekenAchtergrond() {
   }
 }
 
-// teken titel en start knop 
+// teken titel en start knop
 function tekenStartScherm() {
   fill(56, 189, 248);
   noStroke();
@@ -177,7 +202,7 @@ function tekenStartScherm() {
   textStyle(NORMAL);
 
   text(
-    "Test je kennis over online veiligheid. \nde quiz bevat 10 vragen.",
+    `Test je kennis over online veiligheid.\nDe quiz bevat ${quizData.length} vragen.`,
     width / 2,
     260,
   );
@@ -218,14 +243,28 @@ function toonVraagEnOpties() {
   textStyle(BOLD);
   text(`VRAAG ${huidigeVraagIndex + 1} VAN ${quizData.length}`, width / 2, 22);
 
-  // teken de eigenlijke examen vragen 
+  // teken de eigenlijke examen vragen
   fill(255);
   textSize(22);
   textStyle(BOLD);
 
+  // controleer of de huidige vraag een open vraag is
   text(huidigeData.vraag, 60, 80, width - 120, 80);
 
-  // instelingen voor de 4 antwoord knopen 
+  if (huidigeData.type === "open") {
+    // toon het invoerveld zodat de speler een
+    invoerveld.show();
+    invoerveld.position(width / 2 - 200, 250);
+
+    // teken een knop waarmee de speler zijn antwoord kan controleren
+    tekenKnop(width / 2, 350, 200, 50, "CONTROLEREN", color(14, 165, 233));
+
+    return;
+  }
+
+  invoerveld.hide();
+
+  // instelingen voor de 4 antwoord knopen
   let startY = 200;
   let KnopHoogte = 70;
   let tussenruimte = 15;
@@ -233,7 +272,7 @@ function toonVraagEnOpties() {
   textStyle(NORMAL);
   textSize(16);
 
-  // loop door  de 4 optie  om de knopen  onder elkaar te tekenen 
+  // loop door  de 4 optie  om de knopen  onder elkaar te tekenen
   for (let i = 0; i < huidigeData.opties.length; i++) {
     let KnopY = startY + i * (KnopHoogte + tussenruimte);
 
@@ -244,14 +283,14 @@ function toonVraagEnOpties() {
       mouseY > KnopY &&
       mouseY < KnopY + KnopHoogte;
 
-      // geeft de knop een lichter kleur
+    // geeft de knop een lichter kleur
     fill(hover ? color(47, 73, 117) : color(30, 41, 59));
     stroke(71, 85, 105);
     strokeWeight(2);
 
     rect(100, KnopY, width - 200, KnopHoogte, 8);
 
-    // teken de antwoord tekst binnenin de zojuist getekend knop 
+    // teken de antwoord tekst binnenin de zojuist getekend knop
     noStroke();
     fill(241, 245, 249);
 
@@ -259,7 +298,7 @@ function toonVraagEnOpties() {
   }
 }
 
-// teken het russen scherm dat zegt als je antwoord goed is 
+// teken het russen scherm dat zegt als je antwoord goed is
 function tekenFeedbackScherm() {
   let huidigeData = quizData[huidigeVraagIndex];
 
@@ -281,7 +320,7 @@ function tekenFeedbackScherm() {
   textStyle(NORMAL);
   text("Het juiste antwoord was:", width / 2, 240);
 
-  // teken een groen omrand vak met goed antwoord er in 
+  // teken een groen omrand vak met goed antwoord er in
   fill(30, 41, 59);
   stroke(34, 197, 94);
   strokeWeight(2);
@@ -289,15 +328,20 @@ function tekenFeedbackScherm() {
 
   noStroke();
   fill(255);
-  text(huidigeData.opties[huidigeData.correct], 120, 260, width - 240, 80);
-
+  // bij open vragen toon de uitleg van het juiste antwoord
+  if (huidigeData.type === "open") {
+    text(huidigeData.uitlegAntwoord, 120, 260, width - 240, 80);
+  } else {
+     // bij meerkeuzevragen toon het correcte antwoord uit de opties
+    text(huidigeData.opties[huidigeData.correct], 120, 260, width - 240, 80);
+  }
   // bepaal tekst knop: als dit de laast vraag is 'BEKIJK SCORE', anders 'VOLGEND VRAAG'
   let knopText =
     huidigeVraagIndex === quizData.length - 1
       ? "BEKIJK SCORE"
       : "VOLGENDE VRAAG";
 
-      // teken knop op het feedback scherm 
+  // teken knop op het feedback scherm
   tekenKnop(width / 2, 470, 220, 50, knopText, color(14, 165, 233));
 }
 
@@ -316,17 +360,17 @@ function tekenEindScherm() {
   textSize(24);
 
   text(`Score: ${score} / ${quizData.length}`, width / 2, 260);
-// compliment bij een perfecte score 
+  // compliment bij een perfecte score
   textSize(18);
 
   if (score === quizData.length) {
     text("goed gedaan", width / 2, 320);
   }
-// reset knop  om opnieuw te spelen 
+  // reset knop  om opnieuw te spelen
   tekenKnop(width / 2, 450, 220, 50, "OPNIEUW SPELEN", color(34, 197, 94));
 }
 
-// universele functie om een interactieve knop te tekenen 
+// universele functie om een interactieve knop te tekenen
 // verandert van kleur (hover effect) als muis eroverheen beweegt
 function tekenKnop(x, y, w, h, label, knopKleur) {
   let knopX = x - w / 2;
@@ -339,18 +383,18 @@ function tekenKnop(x, y, w, h, label, knopKleur) {
     mouseY > knopY &&
     mouseY < knopY + h;
 
-    // kleur bepalen: lichter bij hover anders normaal
+  // kleur bepalen: lichter bij hover anders normaal
   if (hover) {
     fill(red(knopKleur) + 20, green(knopKleur) + 20, blue(knopKleur) + 20);
   } else {
     fill(knopKleur);
   }
-   // vorm van de knop tekenen
+  // vorm van de knop tekenen
   stroke(255, 50);
   strokeWeight(1);
   rect(knopX, knopY, w, h, 25);
 
- // tekst op knop center tekenen 
+  // tekst op knop center tekenen
   noStroke();
   fill(255);
   textStyle(BOLD);
@@ -358,11 +402,11 @@ function tekenKnop(x, y, w, h, label, knopKleur) {
   text(label, x, y);
 }
 
-// p5 ingebouwde functie die af gaat zodra  er geklikt word 
+// p5 ingebouwde functie die af gaat zodra  er geklikt word
 // Regelt de navigatie en logica op basis van de huidige 'spelStatus'
 function mousePressed() {
   if (spelStatus === "START") {
-    // klik op de start knop 
+    // klik op de start knop
     if (
       mouseX > width / 2 - 100 &&
       mouseX < width / 2 + 100 &&
@@ -373,15 +417,43 @@ function mousePressed() {
     }
     // quiz scherm
   } else if (spelStatus === "QUIZ") {
+    let huidigeData = quizData[huidigeVraagIndex];
+
+    // speciale afhandeling voor open vragen
+    if (huidigeData.type === "open") {
+      if (
+         // controleer of op de knop CONTROLEREN is geklikt
+        mouseX > width / 2 - 100 &&
+        mouseX < width / 2 + 100 &&
+        mouseY > 325 &&
+        mouseY < 375
+      ) {
+        // haal het ingevoerde antwoord op en maak alles kleine letters
+        let antwoord = invoerveld.value().trim().toLowerCase();
+
+         // controleer of het antwoord overeenkomt met het juiste antwoord
+        if (antwoord === huidigeData.correctAntwoord.toLowerCase()) {
+          isAntwoordGoed = true;
+          score++;
+        } else {
+          isAntwoordGoed = false;
+        }
+
+        invoerveld.hide();
+        spelStatus = "FEEDBACK";
+      }
+
+      return;
+    }
     let startY = 200;
     let knopHoogte = 70;
     let tussenruimte = 15;
 
-    // loop door 4 moglijke antwoord opties 
+    // loop door 4 moglijke antwoord opties
     for (let i = 0; i < 4; i++) {
       let knopY = startY + i * (knopHoogte + tussenruimte);
 
-      // controleer op welke antwoord is geklikt 
+      // controleer op welke antwoord is geklikt
       if (
         mouseX > 100 &&
         mouseX < width - 100 &&
@@ -391,19 +463,19 @@ function mousePressed() {
         gekozenAntwoord = i;
         let huidigeData = quizData[huidigeVraagIndex];
 
-        // controleer als het antwoord goed is 
+        // controleer als het antwoord goed is
         if (gekozenAntwoord === huidigeData.correct) {
           isAntwoordGoed = true;
           score++;
         } else {
           isAntwoordGoed = false;
         }
-        // schakel over naar feedback scherm 
+        // schakel over naar feedback scherm
         spelStatus = "FEEDBACK";
         break; // Stop de loop na de klikregistratie
       }
     }
-    // feedback scherm 
+    // feedback scherm
   } else if (spelStatus === "FEEDBACK") {
     // Klik op de "VOLGENDE" / "BEKIJK SCORE" knop
     if (
@@ -416,14 +488,15 @@ function mousePressed() {
       if (huidigeVraagIndex === quizData.length - 1) {
         spelStatus = "EINDE";
       } else {
-        // ander naar de volgend vraag 
+        // ander naar de volgend vraag
         huidigeVraagIndex++;
+        invoerveld.value("");
         spelStatus = "QUIZ";
       }
     }
-    // eind scherm 
+    // eind scherm
   } else if (spelStatus === "EINDE") {
-    // klik op "OPNIEUW SPELEN"  knop 
+    // klik op "OPNIEUW SPELEN"  knop
     if (
       mouseX > width / 2 - 110 &&
       mouseX < width / 2 + 110 &&
@@ -435,6 +508,9 @@ function mousePressed() {
       score = 0;
       gekozenAntwoord = -1;
       isAntwoordGoed = false;
+      quizData = shuffle(quizData);
+      invoerveld.value("");
+      invoerveld.hide();
       spelStatus = "START";
     }
   }
