@@ -144,15 +144,15 @@ function setup() {
     },
     {
       vraag:
-        "Hou noem je een kwaadwillendw computerprogrammeur die probeert in te breken in systemen en netwerken? ",
+        "Hou noem je een kwaadwillende computerprogrammeur die probeert in te breken in systemen en netwerken? ",
       type: "open",
       correctAntwoord: "hacker",
       uitlegAntwoord:
-  "Hacker. Een Black Hat hackt om schade te veroorzaken of data te stelen.",
-},
+        "Hacker. Een Black Hat hackt om schade te veroorzaken of data te stelen.",
+    },
   ];
-// vragen door elkaar zetten
-quizData = shuffle(quizData);
+  // vragen door elkaar zetten
+  quizData = shuffle(quizData);
 }
 
 function draw() {
@@ -332,7 +332,7 @@ function tekenFeedbackScherm() {
   if (huidigeData.type === "open") {
     text(huidigeData.uitlegAntwoord, 120, 260, width - 240, 80);
   } else {
-     // bij meerkeuzevragen toon het correcte antwoord uit de opties
+    // bij meerkeuzevragen toon het correcte antwoord uit de opties
     text(huidigeData.opties[huidigeData.correct], 120, 260, width - 240, 80);
   }
   // bepaal tekst knop: als dit de laast vraag is 'BEKIJK SCORE', anders 'VOLGEND VRAAG'
@@ -422,7 +422,7 @@ function mousePressed() {
     // speciale afhandeling voor open vragen
     if (huidigeData.type === "open") {
       if (
-         // controleer of op de knop CONTROLEREN is geklikt
+        // controleer of op de knop CONTROLEREN is geklikt
         mouseX > width / 2 - 100 &&
         mouseX < width / 2 + 100 &&
         mouseY > 325 &&
@@ -431,7 +431,7 @@ function mousePressed() {
         // haal het ingevoerde antwoord op en maak alles kleine letters
         let antwoord = invoerveld.value().trim().toLowerCase();
 
-         // controleer of het antwoord overeenkomt met het juiste antwoord
+        // controleer of het antwoord overeenkomt met het juiste antwoord
         if (antwoord === huidigeData.correctAntwoord.toLowerCase()) {
           isAntwoordGoed = true;
           score++;
