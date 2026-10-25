@@ -2,8 +2,9 @@ let pet = {
   hunger: 100,
   energy: 100,
   happiness: 100,
-  health: 100
+  health: 100,
 };
+const petName = "Emul";
 
 let currentAction = "";
 let actionTimer = 0;
@@ -32,8 +33,18 @@ let playActive;
 let cleanActive;
 let sleepActive;
 
-function preload() {
+let gameMenuOpen = false;
+let minesweeperOpen = false;
 
+let msRows = 8;
+let msCols = 8;
+let msCellSize = 50;
+
+let msBoard = [];
+let msGameOver = false;
+let msWin = false;
+
+function preload() {
   bgImg = loadImage("emul achtergrond.png");
   sidebarImg = loadImage("zijde bare.png");
 
@@ -60,13 +71,29 @@ function preload() {
 
 function setup() {
   createCanvas(1280, 720);
+  localStorage.clear();
+
+  loadGame();
 
   setInterval(updateStats, 5000);
+  setInterval(saveGame, 5000);
 }
 
 function draw() {
-
   background(0);
+  let currentHour = hour();
+
+  if (currentHour >= 18 || currentHour < 6) {
+    tint(120);
+  } else {
+    noTint();
+  }
+
+  fill(255);
+  textSize(32);
+  textAlign(CENTER);
+
+  text("Emul", width / 2, 60);
 
   image(bgImg, 0, 0, width, height);
 
@@ -87,22 +114,24 @@ function draw() {
   drawAction();
   drawStats();
 
-  if (pet.health <= 0) {
+  if (minesweeperOpen) {
+    drawMinesweeper();
+  }
 
+  if (pet.health <= 0) {
     fill(255, 0, 0);
     textAlign(CENTER);
     textSize(50);
 
-    text(
-      "GAME OVER",
-      width / 2,
-      100
-    );
+    text("GAME OVER", width / 2, 100);
+
+    if (gameMenuOpen) {
+      drawGameMenu();
+    }
   }
 }
 
 function drawButtons() {
-
   image(foodBtnImg, 20, 120, 180, 80);
   image(gameBtnImg, 20, 220, 180, 80);
   image(healBtnImg, 20, 320, 180, 80);
@@ -111,60 +140,28 @@ function drawButtons() {
 }
 
 function drawPet() {
-
   let currentImage;
 
   if (pet.health <= 0) {
-
     currentImage = emulDead;
-
-  } else if (
-    currentAction === "food" &&
-    actionTimer > 0
-  ) {
-
+  } else if (currentAction === "food" && actionTimer > 0) {
     currentImage = emulFood;
-
-  } else if (
-    pet.health < 30
-  ) {
-
+  } else if (pet.health < 30) {
     currentImage = emulSick;
-
-  } else if (
-    pet.energy < 30
-  ) {
-
+  } else if (pet.energy < 30) {
     currentImage = emulSleeping;
-
-  } else if (
-    pet.happiness < 40
-  ) {
-
+  } else if (pet.happiness < 40) {
     currentImage = emulSad;
-
-  } else if (
-    pet.happiness > 80
-  ) {
-
+  } else if (pet.happiness > 80) {
     currentImage = emulHappy;
-
   } else {
-
     currentImage = emulNormal;
   }
 
-  image(
-    currentImage,
-    420,
-    320,
-    350,
-    400
-  );
+  image(currentImage, 420, 320, 350, 400);
 }
 
 function drawAction() {
-
   if (actionTimer <= 0) {
     return;
   }
@@ -199,7 +196,6 @@ function drawAction() {
 }
 
 function drawStats() {
-
   fill(255);
   textSize(24);
   textAlign(LEFT);
@@ -210,99 +206,149 @@ function drawStats() {
   text("Gezondheid: " + pet.health, 950, 360);
 }
 
-function mousePressed() {
+function drawMinesweeper() {
+  fill(0, 220);
+  rect(0, 0, width, height);
 
+  let startX = 440;
+  let startY = 130;
+
+  for (let r = 0; r < msRows; r++) {
+    for (let c = 0; c < msCols; c++) {
+      let cell = msBoard[r][c];
+
+      let x = startX + c * msCellSize;
+      let y = startY + r * msCellSize;
+
+      if (cell.revealed) {
+        fill(180);
+      } else {
+        fill(120);
+      }
+
+      rect(x, y, msCellSize, msCellSize);
+
+      if (cell.revealed) {
+        if (cell.mine) {
+          fill(255, 0, 0);
+
+          ellipse(x + 25, y + 25, 20, 20);
+        } else {
+          fill(0);
+          textSize(20);
+          textAlign(CENTER, CENTER);
+
+          if (cell.count > 0) {
+            text(cell.count, x + 25, y + 25);
+          }
+        }
+      }
+    }
+  }
+
+  fill(255);
+
+  textSize(40);
+
+  text("Minesweeper", width / 2, 70);
+
+  if (msGameOver) {
+    fill(255, 0, 0);
+
+    text("VERLOREN", width / 2, 620);
+  }
+
+  if (msWin) {
+    fill(0, 255, 0);
+
+    text("GEWONNEN", width / 2, 620);
+  }
+}
+
+function mousePressed() {
   if (pet.health <= 0) {
     return;
   }
 
-  if (
-    mouseX > 20 &&
-    mouseX < 200
-  ) {
-
-    if (
-      mouseY > 120 &&
-      mouseY < 200
-    ) {
+  if (mouseX > 20 && mouseX < 200) {
+    if (mouseY > 120 && mouseY < 200) {
       feedPet();
     }
 
-    if (
-      mouseY > 220 &&
-      mouseY < 300
-    ) {
+    if (mouseY > 220 && mouseY < 300) {
       playPet();
     }
 
-    if (
-      mouseY > 320 &&
-      mouseY < 400
-    ) {
+    if (mouseY > 320 && mouseY < 400) {
       healPet();
     }
 
-    if (
-      mouseY > 420 &&
-      mouseY < 500
-    ) {
+    if (mouseY > 420 && mouseY < 500) {
       cleanPet();
     }
 
-    if (
-      mouseY > 520 &&
-      mouseY < 600
-    ) {
+    if (mouseY > 520 && mouseY < 600) {
       sleepPet();
     }
+  }
+  if (gameMenuOpen) {
+    if (mouseX > 350 && mouseX < 600 && mouseY > 250 && mouseY < 350) {
+      startMinesweeper();
+    }
+
+    if (mouseX > 680 && mouseX < 930 && mouseY > 250 && mouseY < 350) {
+      startGuessGame();
+    }
+    return;
+  }
+  if (minesweeperOpen) {
+    handleMinesweeperClick();
+
+    return;
   }
 }
 
 function feedPet() {
-
   pet.hunger += 25;
   pet.energy += 15;
+
+  if (pet.hunger > 90) {
+    pet.health -= 10;
+  }
 
   currentAction = "food";
   actionTimer = 180;
 
   limitStats();
+
+  saveGame();
 }
 
 function playPet() {
-
-  pet.happiness += 20;
-  pet.energy -= 10;
-  pet.hunger -= 10;
-
-  currentAction = "play";
-  actionTimer = 180;
-
-  limitStats();
+  gameMenuOpen = true;
 }
 
 function healPet() {
-
   pet.health += 25;
 
   currentAction = "heal";
   actionTimer = 180;
 
   limitStats();
+  saveGame();
 }
 
 function cleanPet() {
-
   pet.health += 15;
 
   currentAction = "clean";
   actionTimer = 180;
 
   limitStats();
+  saveGame();
 }
 
 function sleepPet() {
-
   pet.energy += 25;
   pet.health += 15;
 
@@ -310,10 +356,10 @@ function sleepPet() {
   actionTimer = 180;
 
   limitStats();
+  saveGame();
 }
 
 function updateStats() {
-
   if (pet.health <= 0) {
     return;
   }
@@ -322,39 +368,209 @@ function updateStats() {
   pet.energy -= 4;
   pet.happiness -= 3;
 
-  if (
-    pet.hunger < 20 ||
-    pet.energy < 20
-  ) {
+  let currentHour = hour();
+
+  if (currentHour >= 18 || currentHour < 6) {
+    pet.energy -= 2;
+  }
+
+  if (pet.hunger < 20 || pet.energy < 20) {
     pet.health -= 3;
   }
 
+  if (random(100) < 5) {
+    pet.health -= 10;
+
+    currentAction = "heal";
+    actionTimer = 180;
+  }
+
   limitStats();
+
+  saveGame();
 }
 
 function limitStats() {
+  pet.hunger = constrain(pet.hunger, 0, 100);
 
-  pet.hunger = constrain(
-    pet.hunger,
-    0,
-    100
-  );
+  pet.energy = constrain(pet.energy, 0, 100);
 
-  pet.energy = constrain(
-    pet.energy,
-    0,
-    100
-  );
+  pet.happiness = constrain(pet.happiness, 0, 100);
 
-  pet.happiness = constrain(
-    pet.happiness,
-    0,
-    100
-  );
+  pet.health = constrain(pet.health, 0, 100);
+}
 
-  pet.health = constrain(
-    pet.health,
-    0,
-    100
-  );
+function saveGame() {
+  localStorage.setItem("petData", JSON.stringify(pet));
+
+  localStorage.setItem("lastSavedTime", Date.now());
+}
+
+function loadGame() {
+  let savedPet = localStorage.getItem("petData");
+
+  let savedTime = localStorage.getItem("lastSavedTime");
+
+  if (savedPet) {
+    pet = JSON.parse(savedPet);
+  }
+
+  if (savedTime) {
+    let secondsPassed = (Date.now() - Number(savedTime)) / 1000;
+
+    let cycles = floor(secondsPassed / 5);
+
+    // maximaal 24 cycli verwerken (2 minuten)
+    cycles = min(cycles, 24);
+
+    pet.hunger -= cycles * 5;
+    pet.energy -= cycles * 4;
+    pet.happiness -= cycles * 3;
+
+    if (pet.hunger < 20 || pet.energy < 20) {
+      pet.health -= cycles * 3;
+    }
+
+    limitStats();
+  }
+}
+
+function startMinesweeper() {
+  minesweeperOpen = true;
+  msGameOver = false;
+  msWin = false;
+
+  msBoard = [];
+
+  for (let r = 0; r < msRows; r++) {
+    let row = [];
+
+    for (let c = 0; c < msCols; c++) {
+      row.push({
+        mine: false,
+        revealed: false,
+        count: 0,
+      });
+    }
+
+    msBoard.push(row);
+  }
+
+  let minesPlaced = 0;
+
+  while (minesPlaced < 10) {
+    let r = floor(random(msRows));
+    let c = floor(random(msCols));
+
+    if (!msBoard[r][c].mine) {
+      msBoard[r][c].mine = true;
+      minesPlaced++;
+    }
+  }
+
+  for (let r = 0; r < msRows; r++) {
+    for (let c = 0; c < msCols; c++) {
+      let total = 0;
+
+      for (let y = -1; y <= 1; y++) {
+        for (let x = -1; x <= 1; x++) {
+          let nr = r + y;
+          let nc = c + x;
+
+          if (nr >= 0 && nr < msRows && nc >= 0 && nc < msCols) {
+            if (msBoard[nr][nc].mine) {
+              total++;
+            }
+          }
+        }
+      }
+
+      msBoard[r][c].count = total;
+    }
+  }
+}
+
+function drawGameMenu() {
+  fill(0, 180);
+  rect(250, 100, 780, 500);
+
+  fill(255);
+  textAlign(CENTER);
+  textSize(40);
+
+  text("Kies een Minigame", width / 2, 180);
+
+  fill(100);
+  rect(350, 250, 250, 100);
+
+  rect(680, 250, 250, 100);
+
+  fill(255);
+  textSize(24);
+
+  text("Minesweeper", 475, 310);
+  text("Raad Getal", 805, 310);
+}
+
+function handleMinesweeperClick() {
+  if (msGameOver || msWin) {
+    minesweeperOpen = false;
+
+    return;
+  }
+
+  let startX = 440;
+  let startY = 130;
+
+  let c = floor((mouseX - startX) / msCellSize);
+
+  let r = floor((mouseY - startY) / msCellSize);
+
+  if (r < 0 || c < 0 || r >= msRows || c >= msCols) {
+    return;
+  }
+
+  let cell = msBoard[r][c];
+
+  cell.revealed = true;
+
+  if (cell.mine) {
+    msGameOver = true;
+
+    pet.happiness -= 10;
+
+    limitStats();
+
+    saveGame();
+
+    return;
+  }
+
+  checkWin();
+}
+
+function checkWin() {
+  let revealedCount = 0;
+
+  for (let r = 0; r < msRows; r++) {
+    for (let c = 0; c < msCols; c++) {
+      if (msBoard[r][c].revealed) {
+        revealedCount++;
+      }
+    }
+  }
+
+  if (revealedCount >= 54) {
+    msWin = true;
+
+    pet.happiness += 25;
+
+    currentAction = "play";
+
+    actionTimer = 180;
+
+    limitStats();
+
+    saveGame();
+  }
 }
