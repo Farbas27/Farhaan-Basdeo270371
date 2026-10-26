@@ -44,10 +44,13 @@ let msBoard = [];
 let msGameOver = false;
 let msWin = false;
 
+//  ALLE AFBEELDINGEN LADEN
 function preload() {
+  // Achtergrond
   bgImg = loadImage("emul achtergrond.png");
   sidebarImg = loadImage("zijde bare.png");
 
+  // Emul sprites
   emulNormal = loadImage("emul.png");
   emulHappy = loadImage("emul happy.png");
   emulSad = loadImage("emul sad.png");
@@ -56,12 +59,14 @@ function preload() {
   emulDead = loadImage("emul dood.png");
   emulFood = loadImage("emul with food.png");
 
+  // Knoppen
   foodBtnImg = loadImage("food butten.png");
   gameBtnImg = loadImage("game butten.png");
   healBtnImg = loadImage("heal butten.png");
   cleanBtnImg = loadImage("schoonmaak butten.png");
   sleepBtnImg = loadImage("sleep butten.png");
 
+  // Actieve icoontjes
   eatActive = loadImage("eten actief.png");
   healActive = loadImage("genezen actief.png");
   playActive = loadImage("spelen actief.png");
@@ -69,18 +74,24 @@ function preload() {
   sleepActive = loadImage("slaap actief.png");
 }
 
+// START VAN HET SPEL
 function setup() {
   createCanvas(1280, 720);
   localStorage.clear();
 
+  // Laad opgeslagen data
   loadGame();
 
+  // Elke 5 seconden stats verversen
   setInterval(updateStats, 5000);
+  // Elke 5 seconden autosave
   setInterval(saveGame, 5000);
 }
 
+// HOOFDLOOP
 function draw() {
   background(0);
+  // Dag/nacht systeem
   let currentHour = hour();
 
   if (currentHour >= 18 || currentHour < 6) {
@@ -89,48 +100,57 @@ function draw() {
     noTint();
   }
 
+  // Titel
   fill(255);
   textSize(32);
   textAlign(CENTER);
 
   text("Emul", width / 2, 60);
 
+  // Achtergrond tekenen
   image(bgImg, 0, 0, width, height);
 
+  // Sidebar openen bij hover
   if (mouseX < 60) {
     menuOpen = true;
   }
 
+  // Sidebar sluiten
   if (mouseX > 250) {
     menuOpen = false;
   }
 
+  // Sidebar tekenen
   if (menuOpen) {
     image(sidebarImg, 0, 0, 220, height);
     drawButtons();
   }
 
+  // Hoofdonderdelen tekenen
   drawPet();
   drawAction();
   drawStats();
 
+  // Minigame menu
+  if (gameMenuOpen) {
+    drawGameMenu();
+  }
+  // Minesweeper scherm
   if (minesweeperOpen) {
     drawMinesweeper();
   }
 
+  // Game over scherm
   if (pet.health <= 0) {
     fill(255, 0, 0);
     textAlign(CENTER);
     textSize(50);
 
     text("GAME OVER", width / 2, 100);
-
-    if (gameMenuOpen) {
-      drawGameMenu();
-    }
   }
 }
 
+// Tekent alle knoppen in de zijbalk
 function drawButtons() {
   image(foodBtnImg, 20, 120, 180, 80);
   image(gameBtnImg, 20, 220, 180, 80);
@@ -139,6 +159,7 @@ function drawButtons() {
   image(sleepBtnImg, 20, 520, 180, 80);
 }
 
+// Tekent Emul afhankelijk van zijn huidige toestand
 function drawPet() {
   let currentImage;
 
@@ -161,6 +182,7 @@ function drawPet() {
   image(currentImage, 420, 320, 350, 400);
 }
 
+// Toont de afbeelding van de huidige actie
 function drawAction() {
   if (actionTimer <= 0) {
     return;
@@ -194,7 +216,7 @@ function drawAction() {
 
   actionTimer--;
 }
-
+// Toont alle statistieken van Emul
 function drawStats() {
   fill(255);
   textSize(24);
@@ -205,7 +227,7 @@ function drawStats() {
   text("Geluk: " + pet.happiness, 950, 300);
   text("Gezondheid: " + pet.health, 950, 360);
 }
-
+// Tekent het Minesweeper speelveld
 function drawMinesweeper() {
   fill(0, 220);
   rect(0, 0, width, height);
@@ -227,6 +249,15 @@ function drawMinesweeper() {
       }
 
       rect(x, y, msCellSize, msCellSize);
+
+      // Vlag tekenen
+if (cell.flagged && !cell.revealed) {
+  fill(255, 0, 0);
+  textSize(28);
+  textAlign(CENTER, CENTER);
+  text("Vlag", x + 25, y + 25);
+}
+
 
       if (cell.revealed) {
         if (cell.mine) {
@@ -252,6 +283,34 @@ function drawMinesweeper() {
 
   text("Minesweeper", width / 2, 70);
 
+  // Titel
+fill(255);
+textSize(40);
+text("Minesweeper", width / 2, 70);
+
+// INSTRUCTIES
+fill(255);
+textAlign(LEFT);
+textSize(22);
+
+text("INSTRUCTIES", 900, 150);
+
+textSize(18);
+text("Linkermuisknop:", 900, 190);
+text("Open een vakje", 900, 215);
+
+text("Rechtermuisknop:", 900, 260);
+text("Plaats een vlag", 900, 285);
+
+text("Doel:", 900, 330);
+text("Open alle veilige", 900, 355);
+text("vakjes zonder", 900, 380);
+text("een mijn te raken.", 900, 405);
+
+text("Mijnen: 10", 900, 460);
+text("Veilige vakjes: 54", 900, 490);
+
+
   if (msGameOver) {
     fill(255, 0, 0);
 
@@ -263,8 +322,10 @@ function drawMinesweeper() {
 
     text("GEWONNEN", width / 2, 620);
   }
+  
 }
 
+// Verwerkt alle muisklikken in het spel
 function mousePressed() {
   if (pet.health <= 0) {
     return;
@@ -308,10 +369,12 @@ function mousePressed() {
   }
 }
 
+// Geeft Emul eten en verhoogt honger en energie
 function feedPet() {
   pet.hunger += 25;
   pet.energy += 15;
 
+  // Te veel eten is ongezond
   if (pet.hunger > 90) {
     pet.health -= 10;
   }
@@ -324,10 +387,12 @@ function feedPet() {
   saveGame();
 }
 
+// Opent het minigame menu
 function playPet() {
   gameMenuOpen = true;
 }
 
+// Geneest Emul en verhoogt gezondheid
 function healPet() {
   pet.health += 25;
 
@@ -338,6 +403,7 @@ function healPet() {
   saveGame();
 }
 
+// Maakt Emul schoon en verhoogt gezondheid
 function cleanPet() {
   pet.health += 15;
 
@@ -348,6 +414,7 @@ function cleanPet() {
   saveGame();
 }
 
+// Laat Emul slapen en herstelt energie
 function sleepPet() {
   pet.energy += 25;
   pet.health += 15;
@@ -359,6 +426,7 @@ function sleepPet() {
   saveGame();
 }
 
+// Verlaagt automatisch de stats van Emul
 function updateStats() {
   if (pet.health <= 0) {
     return;
@@ -374,10 +442,12 @@ function updateStats() {
     pet.energy -= 2;
   }
 
+  // Slechte stats verminderen gezondheid
   if (pet.hunger < 20 || pet.energy < 20) {
     pet.health -= 3;
   }
 
+  // Kans om ziek te worden
   if (random(100) < 5) {
     pet.health -= 10;
 
@@ -390,6 +460,7 @@ function updateStats() {
   saveGame();
 }
 
+// Zorgt dat alle stats tussen 0 en 100 blijven
 function limitStats() {
   pet.hunger = constrain(pet.hunger, 0, 100);
 
@@ -400,12 +471,14 @@ function limitStats() {
   pet.health = constrain(pet.health, 0, 100);
 }
 
+// Slaat het spel op in Local Storage
 function saveGame() {
   localStorage.setItem("petData", JSON.stringify(pet));
 
   localStorage.setItem("lastSavedTime", Date.now());
 }
 
+// Laadt opgeslagen data en verwerkt offline voortgang
 function loadGame() {
   let savedPet = localStorage.getItem("petData");
 
@@ -435,7 +508,22 @@ function loadGame() {
   }
 }
 
+// Simpele raadspel beloning
+function startGuessGame() {
+  pet.happiness += 15;
+
+  currentAction = "play";
+  actionTimer = 180;
+
+  limitStats();
+  saveGame();
+
+  gameMenuOpen = false;
+}
+
+// Start een nieuwe Minesweeper game
 function startMinesweeper() {
+  gameMenuOpen = false;
   minesweeperOpen = true;
   msGameOver = false;
   msWin = false;
@@ -447,10 +535,11 @@ function startMinesweeper() {
 
     for (let c = 0; c < msCols; c++) {
       row.push({
-        mine: false,
-        revealed: false,
-        count: 0,
-      });
+mine: false,
+revealed: false,
+flagged: false,
+count: 0,
+});
     }
 
     msBoard.push(row);
@@ -458,6 +547,7 @@ function startMinesweeper() {
 
   let minesPlaced = 0;
 
+  // Willekeurig mijnen plaatsen
   while (minesPlaced < 10) {
     let r = floor(random(msRows));
     let c = floor(random(msCols));
@@ -468,6 +558,7 @@ function startMinesweeper() {
     }
   }
 
+  // Aantal mijnen rondom elk vakje berekenen
   for (let r = 0; r < msRows; r++) {
     for (let c = 0; c < msCols; c++) {
       let total = 0;
@@ -490,6 +581,7 @@ function startMinesweeper() {
   }
 }
 
+// Tekent het minigame keuzemenu
 function drawGameMenu() {
   fill(0, 180);
   rect(250, 100, 780, 500);
@@ -512,6 +604,7 @@ function drawGameMenu() {
   text("Raad Getal", 805, 310);
 }
 
+// Verwerkt klikken op Minesweeper vakjes
 function handleMinesweeperClick() {
   if (msGameOver || msWin) {
     minesweeperOpen = false;
@@ -534,6 +627,7 @@ function handleMinesweeperClick() {
 
   cell.revealed = true;
 
+  // Controleer of speler op een mijn heeft geklikt
   if (cell.mine) {
     msGameOver = true;
 
@@ -549,6 +643,7 @@ function handleMinesweeperClick() {
   checkWin();
 }
 
+// Controleert of alle veilige vakjes geopend zijn
 function checkWin() {
   let revealedCount = 0;
 
@@ -560,6 +655,7 @@ function checkWin() {
     }
   }
 
+  // Speler wint wanneer alle veilige vakjes geopend zijn
   if (revealedCount >= 54) {
     msWin = true;
 
@@ -573,4 +669,33 @@ function checkWin() {
 
     saveGame();
   }
+}
+
+function mouseReleased() {
+
+if (!minesweeperOpen) return;
+
+if (mouseButton === RIGHT) {
+
+let startX = 440;
+let startY = 130;
+
+let c = floor((mouseX - startX) / msCellSize);
+let r = floor((mouseY - startY) / msCellSize);
+
+if (
+r >= 0 &&
+r < msRows &&
+c >= 0 &&
+c < msCols
+) {
+let cell = msBoard[r][c];
+
+if (!cell.revealed) {
+cell.flagged = !cell.flagged;
+}
+}
+
+return false;
+}
 }
