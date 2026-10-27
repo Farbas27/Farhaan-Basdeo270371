@@ -51,27 +51,27 @@ function preload() {
   sidebarImg = loadImage("zijde bare.png");
 
   // Emul sprites
-  emulNormal = loadImage("emul.png");
-  emulHappy = loadImage("emul happy.png");
-  emulSad = loadImage("emul sad.png");
-  emulSick = loadImage("emul sick.png");
-  emulSleeping = loadImage("emul sleeping.png");
-  emulDead = loadImage("emul dood.png");
-  emulFood = loadImage("emul with food.png");
+  emulNormal = loadImage("emul character/emul.png");
+  emulHappy = loadImage("emul character/emul happy.png");
+  emulSad = loadImage("emul character/emul sad.png");
+  emulSick = loadImage("emul character/emul sick.png");
+  emulSleeping = loadImage("emul character/emul sleeping.png");
+  emulDead = loadImage("emul character/emul dood.png");
+  emulFood = loadImage("emul character/emul with food.png");
 
   // Knoppen
-  foodBtnImg = loadImage("food butten.png");
-  gameBtnImg = loadImage("game butten.png");
-  healBtnImg = loadImage("heal butten.png");
-  cleanBtnImg = loadImage("schoonmaak butten.png");
-  sleepBtnImg = loadImage("sleep butten.png");
+  foodBtnImg = loadImage("butten/food butten.png");
+  gameBtnImg = loadImage("butten/game butten.png");
+  healBtnImg = loadImage("butten/heal butten.png");
+  cleanBtnImg = loadImage("butten/schoonmaak butten.png");
+  sleepBtnImg = loadImage("butten/sleep butten.png");
 
   // Actieve icoontjes
-  eatActive = loadImage("eten actief.png");
-  healActive = loadImage("genezen actief.png");
-  playActive = loadImage("spelen actief.png");
-  cleanActive = loadImage("schoonmaak actief.png");
-  sleepActive = loadImage("slaap actief.png");
+  eatActive = loadImage("activiteit borden/eten actief.png");
+  healActive = loadImage("activiteit borden/genezen actief.png");
+  playActive = loadImage("activiteit borden/spelen actief.png");
+  cleanActive = loadImage("activiteit borden/schoonmaak actief.png");
+  sleepActive = loadImage("activiteit borden/slaap actief.png");
 }
 
 // START VAN HET SPEL
