@@ -35,6 +35,8 @@ let sleepActive;
 
 let gameMenuOpen = false;
 let minesweeperOpen = false;
+let guessMessage = "";
+let secretNumber = 0;
 
 let msRows = 8;
 let msCols = 8;
@@ -103,24 +105,28 @@ function setup() {
 
   // Elke 5 seconden stats verversen
   setInterval(updateStats, 5000);
+
   // Elke 5 seconden autosave
   setInterval(saveGame, 5000);
 
-  for (let r = 0; r < farmRows; r++) {
-    farmTiles[r] = [];
+  if (farmTiles.length === 0) {
+    for (let r = 0; r < farmRows; r++) {
+      farmTiles[r] = [];
 
-    for (let c = 0; c < farmCols; c++) {
-      farmTiles[r][c] = {
-        cropType: 0,
-        stage: 0,
-        timer: 0,
-      };
+      for (let c = 0; c < farmCols; c++) {
+        farmTiles[r][c] = {
+          cropType: 0,
+          stage: 0,
+          timer: 0,
+        };
+      }
     }
   }
 }
 
+
 function draw() {
-  // FARM HEEFT PRIORITEIT
+  
   if (farmOpen) {
     drawFarm();
     return;
@@ -141,7 +147,7 @@ function draw() {
   fill(255);
   textSize(32);
   textAlign(CENTER);
-  text("Emul", width / 2, 60);
+ text(petName, width / 2, 60);
 
   if (mouseX < 60) {
     menuOpen = true;
@@ -174,6 +180,13 @@ function draw() {
     textSize(50);
     text("GAME OVER", width / 2, 100);
   }
+
+  if (guessMessage !== "") {
+  fill(255);
+  textAlign(CENTER);
+  textSize(28);
+  text(guessMessage, width / 2, 650);
+}
 }
 
 // Tekent alle knoppen in de zijbalk
@@ -185,7 +198,7 @@ function drawButtons() {
   image(sleepBtnImg, 20, 520, 180, 80);
 }
 
-// Tekent Emul afhankelijk van zijn huidige toestand
+// Toont de afbeelding van de huidige actie
 function drawPet() {
   let currentImage;
 
@@ -193,6 +206,8 @@ function drawPet() {
     currentImage = emulDead;
   } else if (currentAction === "food" && actionTimer > 0) {
     currentImage = emulFood;
+  } else if (currentAction === "sleep" && actionTimer > 0) {
+    currentImage = emulSleeping;
   } else if (pet.health < 30) {
     currentImage = emulSick;
   } else if (pet.energy < 30) {
@@ -206,9 +221,9 @@ function drawPet() {
   }
 
   image(currentImage, 420, 320, 350, 400);
+  
 }
 
-// Toont de afbeelding van de huidige actie
 function drawAction() {
   if (actionTimer <= 0) {
     return;
@@ -253,7 +268,7 @@ function drawStats() {
 
   textSize(40);
   textStyle(BOLD);
-  text("Emul", 900, 80);
+  text(petName, 900, 80);
 
   textSize(16);
   textStyle(NORMAL);
@@ -604,17 +619,20 @@ function loadGame() {
   }
 
   // Naam laden
-  if (savedName) {
-    petName = savedName;
-  } else {
-    petName = prompt("Geef je huisdier een naam:", "Emul");
+ if (savedName) {
+  petName = savedName;
+} else {
+  petName = prompt(
+    "Geef je huisdier een naam (advies: Emul):",
+    "Emul"
+  );
 
-    if (!petName || petName.trim() === "") {
-      petName = "Emul";
-    }
-
-    localStorage.setItem("petName", petName);
+  if (!petName || petName.trim() === "") {
+    petName = "Emul";
   }
+
+  localStorage.setItem("petName", petName);
+}
 
   // Farm laden
   if (savedFarm) {
@@ -644,15 +662,32 @@ function loadGame() {
 
 // Simpele raadspel beloning
 function startGuessGame() {
-  pet.happiness += 15;
+  gameMenuOpen = false;
 
-  currentAction = "play";
-  actionTimer = 180;
+  secretNumber = floor(random(1, 11));
+
+  let guess = Number(
+    prompt("Raad een getal tussen 1 en 10:")
+  );
+
+  if (guess === secretNumber) {
+    pet.happiness += 20;
+    pet.energy -= 5;
+
+    currentAction = "play";
+    actionTimer = 180;
+
+    guessMessage = "Goed geraden! +" + 20 + " geluk";
+  } else {
+    pet.happiness += 5;
+    pet.energy -= 5;
+
+    guessMessage =
+      "Fout! Het getal was " + secretNumber;
+  }
 
   limitStats();
   saveGame();
-
-  gameMenuOpen = false;
 }
 
 // Start een nieuwe Minesweeper game
@@ -741,7 +776,6 @@ function drawGameMenu() {
 function handleMinesweeperClick() {
   if (msGameOver || msWin) {
     minesweeperOpen = false;
-
     return;
   }
 
@@ -749,7 +783,6 @@ function handleMinesweeperClick() {
   let startY = 130;
 
   let c = floor((mouseX - startX) / msCellSize);
-
   let r = floor((mouseY - startY) / msCellSize);
 
   if (r < 0 || c < 0 || r >= msRows || c >= msCols) {
@@ -758,19 +791,27 @@ function handleMinesweeperClick() {
 
   let cell = msBoard[r][c];
 
-  cell.revealed = true;
+  if (cell.flagged) {
+    return;
+  }
 
-  // Controleer of speler op een mijn heeft geklikt
   if (cell.mine) {
+    cell.revealed = true;
+
     msGameOver = true;
 
     pet.happiness -= 10;
 
     limitStats();
-
     saveGame();
 
     return;
+  }
+
+  if (cell.count === 0) {
+    revealEmpty(r, c);
+  } else {
+    cell.revealed = true;
   }
 
   checkWin();
@@ -906,10 +947,12 @@ function handleFarmClick() {
 
   // Planten
   if (tile.stage === 0) {
-    tile.cropType = floor(random(5)); // 5 soorten gewassen
+    tile.cropType = floor(random(5));
 
     tile.stage = 1;
     tile.timer = 0;
+
+    saveGame();
   }
 
   // Oogsten
@@ -922,17 +965,36 @@ function handleFarmClick() {
     tile.cropType = 0;
 
     limitStats();
+
+    saveGame();
   }
 }
+
+
 function keyPressed() {
 
-  if (key === "R") {
+  console.log("TOETS:", key);
+
+  if (key === "r" || key === "R") {
+
     pet.health = 100;
     pet.hunger = 100;
     pet.energy = 100;
     pet.happiness = 100;
 
+    currentAction = "";
+    actionTimer = 0;
+
+    gameMenuOpen = false;
+    minesweeperOpen = false;
+    msGameOver = false;
+    msWin = false;
+
+    guessMessage = "";
+
     saveGame();
+
+    console.log("RESET GEDAAN");
   }
 
   if (key === "f" || key === "F") {
@@ -941,21 +1003,10 @@ function keyPressed() {
 
   if (farmOpen) {
 
-    if (keyCode === LEFT_ARROW) {
-      playerX -= 16;
-    }
-
-    if (keyCode === RIGHT_ARROW) {
-      playerX += 16;
-    }
-
-    if (keyCode === UP_ARROW) {
-      playerY -= 16;
-    }
-
-    if (keyCode === DOWN_ARROW) {
-      playerY += 16;
-    }
+    if (keyCode === LEFT_ARROW) playerX -= 16;
+    if (keyCode === RIGHT_ARROW) playerX += 16;
+    if (keyCode === UP_ARROW) playerY -= 16;
+    if (keyCode === DOWN_ARROW) playerY += 16;
 
   }
 }
